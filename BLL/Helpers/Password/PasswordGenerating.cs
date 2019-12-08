@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Text;
 using BLL.Constants;
-using Microsoft.AspNetCore.Identity;
 
 namespace BLL.Helpers.Password
 {

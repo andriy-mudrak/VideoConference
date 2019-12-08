@@ -1,7 +1,4 @@
-﻿using System;
-
-
-namespace AuthServer.Models
+﻿namespace AuthServer.Models
 {
     //public class AccountOptions
     //{

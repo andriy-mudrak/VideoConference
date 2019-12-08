@@ -2,7 +2,8 @@
 using System.Security.Claims;
 using System.Threading.Tasks;
 using BLL.Constants;
-using BLL.Models;
+using DAL.Models;
+using DAL.Users.Constants;
 using IdentityModel;
 using IdentityServer4;
 using IdentityServer4.Extensions;
@@ -10,7 +11,7 @@ using IdentityServer4.Models;
 using IdentityServer4.Services;
 using Microsoft.AspNetCore.Identity;
 
-namespace IdentityServerTest
+namespace BLL.Services
 {
     public class IdentityClaimsProfileService : IProfileService
     {

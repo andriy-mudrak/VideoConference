@@ -1,20 +1,20 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel.Design;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Security.Authentication;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using BLL.Constants;
+using BLL.Helpers.Password;
 using BLL.Models;
 using BLL.Services.Interfaces;
+using DAL.Models;
+using DAL.Users.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
 namespace BLL.Services
 {
-    public class UserService: IUserService
+    public class UserService : IUserService
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly SignInManager<AppUser> _signInManager;
@@ -28,8 +28,8 @@ namespace BLL.Services
         public async Task<IEnumerable<Claim>> Login(LoginInputModel model)
         {
             var user = await _userManager.FindByNameAsync(model.Username);
-
-            if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
+            var passwordStatus = await _userManager.CheckPasswordAsync(user, model.Password);
+            if (user != null && passwordStatus)
             {
                 await _signInManager.PasswordSignInAsync(user, model.Password, false, false);
                 var userClaims = await this._userManager.GetClaimsAsync(user);
@@ -37,19 +37,57 @@ namespace BLL.Services
             }
             else
             {
-                throw new AuthenticationException("Bad password");//TODO: change message 
+                throw new AuthenticationException("User not authenticated");//TODO: change message 
             }
         }
 
-        public async Task<IEnumerable<Claim>> Register(RegisterRequestViewModel model)
+        public async Task<IEnumerable<Claim>> Registration(RegisterRequestViewModel model)
         {
             var user = new AppUser { UserName = model.Email, Name = model.Name, Email = model.Email };
+            await CreateUser(user, model.Password);
 
-            var result = await _userManager.CreateAsync(user, model.Password);
+            return await _userManager.GetClaimsAsync(user);
+        }
 
-            if (!result.Succeeded) throw new AuthenticationException(string.Join(" ", result.Errors.Select(x=>x.ToString())));
+        public async Task<IEnumerable<Claim>> ExternalHandler(ClaimsPrincipal externalUser)
+        {
+            var email = externalUser.FindFirstValue(ClaimTypes.Email);
+            var user = await _userManager.FindByNameAsync(email);
 
-            await _userManager.AddToRoleAsync(user, model.Role);
+            if (user != null)
+            {
+                return await ExternalLogin(user);
+            }
+            else
+            {
+                return await ExternalRegistration(externalUser);
+            }
+        }
+
+        private async Task<IEnumerable<Claim>> ExternalLogin(AppUser user)
+        {
+            return await _userManager.GetClaimsAsync(user);
+        }
+
+        private async Task<IEnumerable<Claim>> ExternalRegistration(ClaimsPrincipal externalUser)
+        {
+            var email = externalUser.FindFirstValue(ClaimTypes.Email);
+            var name = externalUser.FindFirstValue(ClaimTypes.Name);
+
+            var user = new AppUser { UserName = email, Name = name, Email = email };
+            var password = PasswordGenerating.GeneratePassword();
+
+            await CreateUser(user, password);
+            return await _userManager.GetClaimsAsync(user);
+        }
+
+        private async Task<AppUser> CreateUser(AppUser user, string password)
+        {
+            var registrationStatus = await _userManager.CreateAsync(user, password);
+
+            if (!registrationStatus.Succeeded) throw new AuthenticationException(string.Join(" ", registrationStatus.Errors.Select(x => x.ToString())));
+
+            await _userManager.AddToRoleAsync(user, RoleConstants.DEFAULT_ROLE);
             await _userManager.AddClaimAsync(user,
                 new System.Security.Claims.Claim(ClaimConstants.USERNAME, user.UserName));
             await _userManager.AddClaimAsync(user,
@@ -59,7 +97,7 @@ namespace BLL.Services
             await _userManager.AddClaimAsync(user,
                 new System.Security.Claims.Claim(ClaimConstants.ROLE, RoleConstants.DEFAULT_ROLE));
 
-            return await _userManager.GetClaimsAsync(user);
+            return user;
         }
     }
 }

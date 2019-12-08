@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VideoConference", "Identity
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BLL", "BLL\BLL.csproj", "{58986422-3D62-4FEF-B748-80D0ADFE7FDA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DAL", "DAL\DAL.csproj", "{18E15288-9EFE-40A6-BD64-CB53C1E5CAF8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DAL.Users", "DAL\DAL.Users.csproj", "{18E15288-9EFE-40A6-BD64-CB53C1E5CAF8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

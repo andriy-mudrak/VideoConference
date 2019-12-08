@@ -1,24 +1,18 @@
 ﻿using System;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using BLL.Models;
 using BLL.Services;
 using BLL.Services.Interfaces;
+using DAL;
+using DAL.Models;
+using DAL.Users;
 using IdentityServer4;
-using IdentityServer4.AspNetIdentity;
 using IdentityServer4.Services;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace IdentityServerTest
 {
@@ -31,10 +25,10 @@ namespace IdentityServerTest
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<AppIdentityDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("Default")));
+            services.AddDbContext<AppIdentityDbContext>(options => 
+                options.UseSqlServer(Configuration.GetConnectionString("Default")));
             
             services.AddIdentity<AppUser, IdentityRole>()
                 .AddEntityFrameworkStores<AppIdentityDbContext>()
@@ -42,14 +36,6 @@ namespace IdentityServerTest
 
             services.AddTransient<IProfileService, IdentityClaimsProfileService>();
             services.AddTransient<IUserService, UserService>();
-            //services.AddTransient<ILinkedinHelpers, LinkedinHelpers>();
-
-            //services.AddAuthentication().AddLinkedIn(options =>
-            //{
-            //    options.ClientId = Configuration["Authentication:LinkedIn:ClientId"];
-            //    options.ClientSecret = Configuration["Authentication:LinkedIn:ClientSecret"];
-            //    options.Scope.Add("r_liteprofile");
-            //});
 
             services.AddAuthentication()
                 .AddGoogle(googleOptions =>
@@ -57,47 +43,29 @@ namespace IdentityServerTest
                     googleOptions.ClientId = Configuration["Authentication:Google:ClientId"];
                     googleOptions.ClientSecret = Configuration["Authentication:Google:ClientSecret"];
                     googleOptions.UserInformationEndpoint = "https://www.googleapis.com/oauth2/v2/userinfo";
-                    //googleOptions.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
-
-                    //googleOptions.Events.OnCreatingTicket = (context) =>
-                    //{
-                    //    context.Identity.AddClaim(new Claim("image", context.User.GetValue("image").SelectToken("url").ToString()));
-
-                    //    return Task.CompletedTask;
-                    //};
-                    //googleOptions.ClaimActions.Clear();
-                    //googleOptions.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "id");
-                    //googleOptions.ClaimActions.MapJsonKey(ClaimTypes.Name, "name");
-                    //googleOptions.ClaimActions.MapJsonKey(ClaimTypes.GivenName, "given_name");
-                    //googleOptions.ClaimActions.MapJsonKey(ClaimTypes.Surname, "family_name");
-                    //googleOptions.ClaimActions.MapJsonKey("urn:google:profile", "link");
-                    //googleOptions.ClaimActions.MapJsonKey(ClaimTypes.Email, "email");
-                    //googleOptions.ClaimActions.MapJsonKey("urn:google:image", "picture");
+                    googleOptions.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
                 })
                 .AddFacebook(facebookOptions =>
                 {
                     facebookOptions.AppId = Configuration["Authentication:Facebook:ClientId"];
                     facebookOptions.AppSecret = Configuration["Authentication:Facebook:ClientSecret"];
-                    //facebookOptions.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
+                    facebookOptions.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
                 })
                 .AddLinkedIn(linkedinOptions =>
                 {
                     linkedinOptions.ClientId = Configuration["Authentication:Linkedin:ClientId"];
                     linkedinOptions.ClientSecret = Configuration["Authentication:Linkedin:ClientSecret"];
-                    //linkedinOptions.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
-
+                    linkedinOptions.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
                 });
 
             services.AddIdentityServer()
                 .AddDeveloperSigningCredential()
-                // this adds the operational data from DB (codes, tokens, consents)
                 .AddOperationalStore(options =>
                     {
                         options.ConfigureDbContext = builder =>
                             builder.UseSqlServer(Configuration.GetConnectionString("Default"));
-                        // this enables automatic token cleanup. this is optional.
                         options.EnableTokenCleanup = true;
-                        options.TokenCleanupInterval = 30; // interval in seconds
+                        options.TokenCleanupInterval = 30;
                     })
                 .AddInMemoryIdentityResources(Config.GetIdentityResources())
                 .AddInMemoryApiResources(Config.GetApiResources())
@@ -105,15 +73,9 @@ namespace IdentityServerTest
                 .AddAspNetIdentity<AppUser>()
                 .AddProfileService<IdentityClaimsProfileService>();
 
-
-            //services.AddCors(options => options.AddPolicy("AllowAll", p => p.AllowAnyOrigin()
-            //    .AllowAnyMethod()
-            //    .AllowAnyHeader()));
-
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, IServiceProvider serviceProvider)
         {
             if (env.IsDevelopment())
@@ -122,7 +84,6 @@ namespace IdentityServerTest
             }
             else
             {
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
             app.UseCors("AllowAll");
@@ -134,6 +95,5 @@ namespace IdentityServerTest
             app.UseHttpsRedirection();
             app.UseMvc();
         }
-
     }
 }

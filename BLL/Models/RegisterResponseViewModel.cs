@@ -1,5 +1,7 @@
 ﻿
 
+using DAL.Models;
+
 namespace BLL.Models
 {
     public class RegisterResponseViewModel

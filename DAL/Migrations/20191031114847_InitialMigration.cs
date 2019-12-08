@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace IdentityServerTest.Migrations
+namespace DAL.Users.Migrations
 {
     public partial class InitialMigration : Migration
     {

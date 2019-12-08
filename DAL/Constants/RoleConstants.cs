@@ -1,4 +1,4 @@
-﻿namespace BLL.Constants
+﻿namespace DAL.Users.Constants
 {
     public static class RoleConstants
     {

@@ -1,10 +1,10 @@
-﻿using BLL.Constants;
-using BLL.Models;
+﻿using DAL.Models;
+using DAL.Users.Constants;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace IdentityServerTest
+namespace DAL.Users
 {
     public class AppIdentityDbContext : IdentityDbContext<AppUser, IdentityRole, string>
     {

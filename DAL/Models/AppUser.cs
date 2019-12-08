@@ -1,7 +1,6 @@
-﻿using IdentityServer4;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 
-namespace BLL.Models
+namespace DAL.Models
 {
     public class AppUser : IdentityUser
     {
